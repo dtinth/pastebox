@@ -1,0 +1,26 @@
+{
+  "name": "imgstash",
+  "version": "1.0.0",
+  "description": "An Electron app for macOS that lets you paste image data from an application and drag it out as an image file to another application",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "author": "Thai Pangsakulyanont <org.yi.dttvb@gmail.com> (http://dt.in.th/)",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^8.1.1",
+    "electron-builder": "^22.4.0"
+  },
+  "dependencies": {
+    "temp-write": "^4.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dtinth/imgstash.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dtinth/imgstash/issues"
+  },
+  "homepage": "https://github.com/dtinth/imgstash#readme"
+}
