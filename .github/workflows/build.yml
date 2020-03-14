@@ -12,6 +12,3 @@ jobs:
           node-version: 12
       - name: Build Electron app
         uses: samuelmeuli/action-electron-builder@36f2c8d70b897ccddf9b14c033ff24b94d66a23d
-        with:
-          github_token: ${{ secrets.github_token }}
-          release: ${{ startsWith(github.ref, 'refs/tags/v') }}
