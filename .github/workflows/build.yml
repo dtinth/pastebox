@@ -15,9 +15,8 @@ jobs:
         uses: samuelmeuli/action-electron-builder@36f2c8d70b897ccddf9b14c033ff24b94d66a23d
         with:
           github_token: ${{ secrets.github_token }}
-      - run: mkdir -p dist/imgstash && cp dist/*.zip dist/imgstash
       - name: Upload Artifacts
         uses: actions/upload-artifact@v1
         with:
           name: imgstash
-          path: dist/imgstash
+          path: dist/mac
