@@ -22,5 +22,15 @@
   "bugs": {
     "url": "https://github.com/dtinth/imgstash/issues"
   },
-  "homepage": "https://github.com/dtinth/imgstash#readme"
+  "homepage": "https://github.com/dtinth/imgstash#readme",
+  "build": {
+    "appId": "me.spacet.imgstash",
+    "mac": {
+      "category": "public.app-category.utilities"
+    },
+    "files": [
+      "main.js",
+      "index.html"
+    ]
+  }
 }
