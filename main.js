@@ -1,12 +1,16 @@
 const { app, ipcMain, BrowserWindow } = require('electron')
 const tempWrite = require('temp-write')
+const path = require('path')
 
 ipcMain.on('dragstart', (event, options) => {
-  const fileName = `${new Date().toJSON().replace(/\W/g, '')}.png`
-  const filePath = tempWrite.sync(options.buffer, fileName)
+  const filePath = tempWrite.sync(options.buffer, options.name)
   event.sender.startDrag({
     file: filePath,
-    icon: filePath,
+    icon: filePath.endsWith('.png')
+      ? filePath
+      : filePath.endsWith('.wav')
+      ? path.join(__dirname, 'assets/wav@2x.png')
+      : path.join(__dirname, 'assets/unknown@2x.png'),
   })
 })
 
