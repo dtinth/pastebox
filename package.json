@@ -1,5 +1,5 @@
 {
-  "name": "imgstash",
+  "name": "pastebox",
   "version": "1.0.0",
   "description": "An Electron app for macOS that lets you paste image data from an application and drag it out as an image file to another application",
   "main": "main.js",
@@ -17,20 +17,22 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/dtinth/imgstash.git"
+    "url": "git+https://github.com/dtinth/pastebox.git"
   },
   "bugs": {
-    "url": "https://github.com/dtinth/imgstash/issues"
+    "url": "https://github.com/dtinth/pastebox/issues"
   },
-  "homepage": "https://github.com/dtinth/imgstash#readme",
+  "homepage": "https://github.com/dtinth/pastebox#readme",
   "build": {
-    "appId": "me.spacet.imgstash",
+    "appId": "me.spacet.pastebox",
     "mac": {
       "category": "public.app-category.utilities"
     },
     "files": [
       "main.js",
-      "index.html"
+      "index.html",
+      "assets",
+      "vendor"
     ]
   }
 }
