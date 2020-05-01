@@ -3,6 +3,7 @@
 An Electron app for macOS that lets you paste image data from an application and drag it out as an image file to another application.
 
 ### &rarr; [Introduction post](https://dev.to/dtinth/pastebox-paste-in-an-image-drag-it-out-as-a-file-41m0)
+### &rarr; [Introduction video](https://www.youtube.com/watch?v=E6aYLVxsRKA)
 
 [![Cover image](./cover.png)](https://dev.to/dtinth/pastebox-paste-in-an-image-drag-it-out-as-a-file-41m0)
 
