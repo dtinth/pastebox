@@ -11,6 +11,7 @@
     <style>
       body {
         background: transparent;
+        user-select: none;
         color: #fff;
         font: 10px system-ui;
       }
@@ -81,6 +82,7 @@
           <label>
             <input type="checkbox" name="alwaysOnTop" /> Always on top
           </label>
+          <label> <input type="checkbox" name="autoPaste" /> Auto-paste </label>
         </form>
       </div>
       <div id="mainArea"></div>
@@ -96,20 +98,29 @@
       settingsForm.alwaysOnTop.onchange = () => {
         getCurrentWindow().setAlwaysOnTop(settingsForm.alwaysOnTop.checked)
       }
+      settingsForm.autoPaste.onchange = () => {
+        ipcRenderer.send('clipboardMonitor', {
+          on: settingsForm.autoPaste.checked,
+        })
+      }
       showStatus('Waiting for an image to be pasted in...')
 
       const { Buffer } = require('buffer')
       const {
         ipcRenderer,
-        remote: { getCurrentWindow },
+        remote: { getCurrentWindow, clipboard },
       } = require('electron')
 
-      document.ondragover = e => e.preventDefault()
-      document.ondrop = e => {
+      ipcRenderer.on('pasted', (event, { image }) => {
+        handleFile(new Blob([image], { type: 'image/png' }))
+      })
+
+      document.ondragover = (e) => e.preventDefault()
+      document.ondrop = (e) => {
         e.preventDefault()
         handleFile(e.dataTransfer.files[0])
       }
-      document.onpaste = async e => {
+      document.onpaste = async (e) => {
         e.preventDefault()
         handleFile(e.clipboardData.files[0])
       }
@@ -139,7 +150,7 @@
           }
           el.src = URL.createObjectURL(file)
           const name = `${new Date().toJSON().replace(/\W/g, '')}.png`
-          el.ondragstart = event => {
+          el.ondragstart = (event) => {
             event.preventDefault()
             const buffer = Buffer.from(arrayBuffer)
             ipcRenderer.send('dragstart', { buffer, name })
@@ -149,12 +160,12 @@
         }
       }
 
-      window.onkeydown = e => {
-        if (!e.altKey && !e.ctrlKey && !e.shiftKey && !e.metaKey) {
-          if (e.key === 'r') {
+      window.onkeydown = (e) => {
+        if (!e.altKey && !e.ctrlKey && !e.metaKey) {
+          if (e.key === 'r' || e.key === 'R') {
             e.preventDefault()
             e.stopPropagation()
-            toggleRecording()
+            toggleRecording({ noiseSuppression: !e.shiftKey })
           } else if (e.key === ' ') {
             if (activeThing.play) {
               e.preventDefault()
@@ -168,14 +179,14 @@
       function createWaveformDisplay() {
         const el = document.createElement('div')
         el.className = 'waveform-display'
-        const createColumn = startTime => {
+        const createColumn = (startTime) => {
           const column = document.createElement('div')
           column.className = 'waveform-display-column'
           el.appendChild(column)
           let maxAmplitude = 0
           return {
             startTime,
-            handleAmplitude: a => {
+            handleAmplitude: (a) => {
               const amplitude = Math.round(a * 100)
               if (amplitude > maxAmplitude) {
                 maxAmplitude = amplitude
@@ -191,7 +202,7 @@
           finish: () => {
             el.dataset.finished = 'true'
           },
-          handle: data => {
+          handle: (data) => {
             const now = Date.now()
             if (!startTime) startTime = now
             let amplitude = 0
@@ -208,13 +219,38 @@
         }
       }
 
-      async function toggleRecording() {
+      let latestStream
+      async function getMediaStream({ noiseSuppression }) {
+        if (latestStream) {
+          if (latestStream.noiseSuppression !== noiseSuppression) {
+            latestStream.destroy()
+            latestStream = null
+          }
+        }
+        if (!latestStream) {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            audio: {
+              autoGainControl: false,
+              echoCancellation: false,
+              noiseSuppression: noiseSuppression,
+            },
+            video: false,
+          })
+          const destroy = () => {
+            for (const track of stream.getTracks()) track.stop()
+          }
+          latestStream = { noiseSuppression, stream, destroy }
+        }
+        return latestStream
+      }
+
+      async function toggleRecording({ noiseSuppression }) {
         if (activeThing.isRecording) {
           activeThing.finishRecording()
         } else {
           showStatus('Recording audio...')
           let disposed = false
-          const updateStatus = text => {
+          const updateStatus = (text) => {
             if (!disposed) showStatus(text)
           }
           activeThing.dispose()
@@ -224,8 +260,8 @@
           mainArea.appendChild(el)
           const thing = { isRecording: true }
           activeThing = thing
-          const disposePromise = new Promise(r => (thing.dispose = r))
-          const stopPromise = new Promise(r => {
+          const disposePromise = new Promise((r) => (thing.dispose = r))
+          const stopPromise = new Promise((r) => {
             thing.finishRecording = () => {
               thing.isRecording = false
               r()
@@ -241,20 +277,14 @@
           const audioCtx =
             window.mainAudioContext ||
             (window.mainAudioContext = new AudioContext())
-          const stream = await navigator.mediaDevices.getUserMedia({
-            audio: {
-              autoGainControl: false,
-              echoCancellation: false,
-              noiseSuppression: true,
-            },
-            video: false,
-          })
+          const currentStream = await getMediaStream({ noiseSuppression })
+          const stream = currentStream.stream
           const recorder = new MediaRecorder(stream, {
             mimeType: 'audio/webm; codecs="pcm"',
           })
           const source = audioCtx.createMediaStreamSource(stream)
           const processor = audioCtx.createScriptProcessor(0, 1, 1)
-          processor.onaudioprocess = e => {
+          processor.onaudioprocess = (e) => {
             if (recorder.state !== 'recording') {
               return
             }
@@ -264,17 +294,16 @@
           processor.connect(audioCtx.destination)
 
           const blobs = []
-          recorder.ondataavailable = function(e) {
+          recorder.ondataavailable = function (e) {
             blobs.push(e.data)
           }
 
-          const recordingStopPromise = new Promise(r => (recorder.onstop = r))
+          const recordingStopPromise = new Promise((r) => (recorder.onstop = r))
           recorder.start()
 
           await stopPromise
           updateStatus('Stopping recording...')
           recorder.stop()
-          for (const track of stream.getTracks()) track.stop()
           source.disconnect()
           processor.disconnect()
           waveformDisplay.finish()
@@ -309,7 +338,7 @@
             audio.remove()
           })
           el.draggable = true
-          el.ondragstart = event => {
+          el.ondragstart = (event) => {
             event.preventDefault()
             const buffer = Buffer.from(waveBuffer)
             ipcRenderer.send('dragstart', { buffer, name })
