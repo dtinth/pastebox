@@ -68,6 +68,7 @@ function createWindow() {
     backgroundColor: '#00353433',
     acceptFirstMouse: true,
     webPreferences: {
+      enableRemoteModule: true,
       nodeIntegration: true,
     },
   })
