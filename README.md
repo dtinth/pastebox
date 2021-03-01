@@ -9,10 +9,12 @@ An Electron app for macOS that lets you paste image data from an application and
 
 ## Usage
 
-1. Clone the repository
+1. Install npm first. 
+2. `npm install -g yarn`
+3. Clone the repository 
+4. `cd pastebox`
+5. `npm install`
+6. `yarn`
+7. `yarn build`
+8. Open `dist/mac/pastebox.app`
 
-2. `yarn`
-
-3. `yarn build`
-
-4. Open `dist/mac/pastebox.app`
