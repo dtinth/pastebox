@@ -5,13 +5,13 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build": "electron-builder --dir"
+    "build": "electron-builder --dir --universal"
   },
   "author": "Thai Pangsakulyanont <org.yi.dttvb@gmail.com> (http://dt.in.th/)",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^16.0.4",
-    "electron-builder": "^22.14.5"
+    "electron": "^11.2.3",
+    "electron-builder": "^22.9.1"
   },
   "dependencies": {
     "temp-write": "^4.0.0"
